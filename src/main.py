@@ -26,13 +26,19 @@ class BHBot(commands.Bot):
             print('_', end='')
         print()
 
-        test_guild = await self.fetch_guild(MY_GUILD.id)
+        # wait until cache is populated
+        await self.wait_until_ready()
+        test_guild = self.get_guild(MY_GUILD.id)
         if test_guild:
-            print(f'test guild fetched successfully')
-            print(f'g.name: {test_guild.name}')
-            print(f'g.id: {test_guild.id}')
-        else:
-            print(f'ERR: Couldn\'t fetch the Test guild')
+            for m in test_guild.members:
+                self.check_initial_activity(m)
+
+    def check_initial_activity(self, member: discord.Member) -> None:
+        if member.activity:
+            if member.activity.type == discord.ActivityType.playing:
+                print(f'check_initial_activity {member.name}: STARTED PLAYING')
+                Time_logger.get_instance().start_timer_for_event(
+                    f'{member.name}_playing')
 
     async def setup_hook(self) -> None:
         '''
@@ -51,20 +57,24 @@ class BHBot(commands.Bot):
         if after.guild.id != MY_GUILD.id or before.guild.id != MY_GUILD.id:
             return
         _after_activity_type = None
+        _before_activity_type = None
 
         if after and after.activity:
             _after_activity_type = after.activity.type
+        if before and before.activity:
+            _before_activity_type = before.activity.type
 
-        if _after_activity_type == discord.ActivityType.playing:
-            print(f'on_presence_update {after.name}: STARTED PLAYING')
-            Time_logger.get_instance().start_timer_for_event(
-                f'{after.name}_playing')
-        else:
-            print(f'on_presence_update {before.name}: FINISHED PLAYING')
-            Time_logger.get_instance().mark_timestamp_for_event(
-                f'{before.name}_playing', True)
-            print(f'{Time_logger.get_instance().get_event_duration(
-                f'{before.name}_playing', 's')} seconds')
+        if _before_activity_type != _after_activity_type:
+            if _after_activity_type == discord.ActivityType.playing:
+                print(f'on_presence_update {after.name}: STARTED PLAYING')
+                Time_logger.get_instance().start_timer_for_event(
+                    f'{after.name}_playing')
+            else:
+                print(f'on_presence_update {before.name}: FINISHED PLAYING')
+                Time_logger.get_instance().mark_timestamp_for_event(
+                    f'{before.name}_playing', True)
+                print(f'{Time_logger.get_instance().get_event_duration(
+                    f'{before.name}_playing', 's')} seconds')
 
     async def load_initial_extensions(self):
         cogs = ['cogs.default']

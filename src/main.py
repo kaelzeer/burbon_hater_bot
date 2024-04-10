@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from os import environ
 
 import discord
-from discord.ext import tasks
+from discord.ext import tasks, commands
 
 from utils.time_logger import Time_logger
 
@@ -12,8 +12,8 @@ load_dotenv()
 MY_GUILD = discord.Object(id=environ['TEST_GUILD_ID'])
 
 
+class BHBot(commands.Bot):
 
-class BHClient(discord.Client):
     async def on_ready(self):
         '''
         Print out successfull connection.
@@ -33,6 +33,14 @@ class BHClient(discord.Client):
             print(f'g.id: {test_guild.id}')
         else:
             print(f'ERR: Couldn\'t fetch the Test guild')
+
+    async def setup_hook(self) -> None:
+        '''
+        Setup command tree.
+        '''
+        await self.load_initial_extensions()
+        self.tree.copy_global_to(guild=MY_GUILD)
+        await self.tree.sync(guild=MY_GUILD)
 
     async def on_presence_update(self, before: discord.Member, after: discord.Member):
         '''
@@ -58,6 +66,11 @@ class BHClient(discord.Client):
             print(f'{Time_logger.get_instance().get_event_duration(
                 f'{before.name}_playing', 's')} seconds')
 
+    async def load_initial_extensions(self):
+        cogs = ['cogs.default']
+        for cog in cogs:
+            await self.load_extension(cog)
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -65,6 +78,6 @@ intents.members = True
 intents.guilds = True
 intents.presences = True
 
-client = BHClient(intents=intents)
+bot = BHBot(command_prefix='/', intents=intents)
 bot_token = environ['TOKEN']
-client.run(bot_token)
+bot.run(bot_token)

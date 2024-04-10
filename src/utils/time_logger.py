@@ -76,12 +76,11 @@ class Time_logger:
                 f'Time_logger.get_event_duration: there\'s no key - {event_name}')
         if time_type == 'ms':
             duration *= 1000
-        elif time_type == 's':
-            duration *= 1000 * 1000
         elif time_type == 'm':
-            duration *= 1000 * 1000 * 60
+            duration /= 60
         elif time_type == 'h':
-            duration *= 1000 * 1000 * 60 * 60
+            duration /= 60 * 60
+        return duration
 
 
 '''

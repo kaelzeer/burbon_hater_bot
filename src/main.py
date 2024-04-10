@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from os import environ
+
 import discord
 from discord.ext import tasks
 
@@ -8,7 +9,8 @@ from utils.time_logger import Time_logger
 
 load_dotenv()
 
-test_guild: discord.Guild
+MY_GUILD = discord.Object(id=environ['TEST_GUILD_ID'])
+
 
 
 class BHClient(discord.Client):
@@ -18,15 +20,13 @@ class BHClient(discord.Client):
 
         Fetch `Test guild` by `id` in `.env` file.
         '''
-        global test_guild
         s = f'Logged in as {self.user} :hehecat:'
         print(s)
         for _ in range(len(s)):
             print('_', end='')
         print()
 
-        test_guild_id = environ['TEST_GUILD_ID']
-        test_guild = await self.fetch_guild(test_guild_id)
+        test_guild = await self.fetch_guild(MY_GUILD.id)
         if test_guild:
             print(f'test guild fetched successfully')
             print(f'g.name: {test_guild.name}')
@@ -40,26 +40,23 @@ class BHClient(discord.Client):
 
         Works only in `Test guild`
         '''
-        if before.guild != test_guild:
+        if after.guild.id != MY_GUILD.id or before.guild.id != MY_GUILD.id:
             return
-        if before and after:
-            _after_activity_type = None
-            _before_activity_type = None
+        _after_activity_type = None
 
-            if after.activity:
-                _after_activity_type = after.activity.type
-            if before.activity:
-                _before_activity_type = before.activity.type
+        if after and after.activity:
+            _after_activity_type = after.activity.type
 
-            if _after_activity_type != _before_activity_type:
-                if _after_activity_type == discord.ActivityType.playing:
-                    print(f'on_presence_update: PLAYING')
-                    Time_logger.get_instance().start_timer_for_event(
-                        f'{after.name}_playing')
-                else:
-                    print(f'on_presence_update: FINISHED PLAYING')
-                    Time_logger.get_instance().mark_timestamp_for_event(
-                        f'{after.name}_playing', True)
+        if _after_activity_type == discord.ActivityType.playing:
+            print(f'on_presence_update {after.name}: STARTED PLAYING')
+            Time_logger.get_instance().start_timer_for_event(
+                f'{after.name}_playing')
+        else:
+            print(f'on_presence_update {before.name}: FINISHED PLAYING')
+            Time_logger.get_instance().mark_timestamp_for_event(
+                f'{before.name}_playing', True)
+            print(f'{Time_logger.get_instance().get_event_duration(
+                f'{before.name}_playing', 's')} seconds')
 
 
 intents = discord.Intents.default()

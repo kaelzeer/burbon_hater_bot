@@ -4,12 +4,12 @@ from os import environ
 import discord
 from discord.ext import tasks, commands
 
-from utils.time_logger import Time_logger
+from utils.utils_manager import Utils_manager
 
 
 load_dotenv()
-
-MY_GUILD = discord.Object(id=environ['TEST_GUILD_ID'])
+TEST_GUILD = discord.Object(id=environ['TEST_GUILD_ID'])
+BOT_TOKEN = environ['TOKEN']
 
 
 class BHBot(commands.Bot):
@@ -37,7 +37,7 @@ class BHBot(commands.Bot):
         if member.activity:
             if member.activity.type == discord.ActivityType.playing:
                 print(f'check_initial_activity {member.name}: STARTED PLAYING')
-                Time_logger.get_instance().start_timer_for_event(
+                ceo.time_logger.start_timer_for_event(
                     f'{member.name}_playing')
 
     async def setup_hook(self) -> None:
@@ -67,13 +67,13 @@ class BHBot(commands.Bot):
         if _before_activity_type != _after_activity_type:
             if _after_activity_type == discord.ActivityType.playing:
                 print(f'on_presence_update {after.name}: STARTED PLAYING')
-                Time_logger.get_instance().start_timer_for_event(
+                ceo.time_logger.start_timer_for_event(
                     f'{after.name}_playing')
             else:
                 print(f'on_presence_update {before.name}: FINISHED PLAYING')
-                Time_logger.get_instance().mark_timestamp_for_event(
+                ceo.time_logger.mark_timestamp_for_event(
                     f'{before.name}_playing', True)
-                print(f'{Time_logger.get_instance().get_event_duration(
+                print(f'{ceo.get_event_duration(
                     f'{before.name}_playing', 's')} seconds')
 
     async def load_initial_extensions(self):
@@ -82,6 +82,8 @@ class BHBot(commands.Bot):
             await self.load_extension(cog)
 
 
+ceo = Utils_manager
+
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
@@ -89,5 +91,4 @@ intents.guilds = True
 intents.presences = True
 
 bot = BHBot(command_prefix='/', intents=intents)
-bot_token = environ['TOKEN']
-bot.run(bot_token)
+bot.run(BOT_TOKEN)

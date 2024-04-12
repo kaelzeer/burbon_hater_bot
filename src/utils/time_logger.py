@@ -24,7 +24,7 @@ class Time_logger:
         start = time.monotonic()
         self._events_start_timestamps[event_name] = start
 
-    def mark_timestamp_for_event(self, event_name: str, stack_time: bool = False) -> None:
+    def mark_timestamp_for_event(self, event_name: str, stack_time: bool = True) -> None:
         '''
         Mark the timestamp for a given event.
 
@@ -57,13 +57,21 @@ class Time_logger:
         Arguments:
             `event_name`: name of event to get duration of.
             `time_type`: convert time type to (default: 'ms').
+            `stack_time`: should current duration be added to previous (default: True).
         '''
+        end = time.monotonic()
         duration = 0
+        saved_time = 0
         try:
-            duration = int(self._events_time[event_name])
+            saved_time = self._events_time[event_name]
         except KeyError:
-            print(
-                f'Time_logger.get_event_duration: there\'s no key - {event_name}')
+            pass
+        try:
+            start = self._events_start_timestamps[event_name]
+            duration = end - start + saved_time
+        except KeyError:
+            duration = saved_time
+
         if time_type == 'ms':
             duration *= 1000
         elif time_type == 'm':

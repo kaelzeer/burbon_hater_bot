@@ -1,2 +1,18 @@
 {
+    "cogs": {
+        "default": {
+            "commands": {
+                "report_my_playtime": {
+                    "time_slices": [
+                        { "time": 3600, "emoji_name": "ti_chto_ebat", "message": "You've played: {} seconds. Get a life {}"},
+                        { "time": 0, "emoji_name": "5658sus", "message": "You've played: {} seconds. {}"}
+                    ],
+                    "negative_slice": {
+                        "emoji_name": "za_nikosom", "message": "You wasn't playing {}"
+                    }
+                }
+            }
+        }
+
+    }
 }

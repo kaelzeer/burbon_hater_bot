@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-from os import environ
 import logging
 
 import discord
@@ -8,13 +6,12 @@ from discord.ext import tasks, commands
 from utils.utils_manager import Utils_manager
 
 
-load_dotenv()
-TEST_GUILD = discord.Object(id=environ['TEST_GUILD_ID'])
-BOT_TOKEN = environ['TOKEN']
 logger = logging.getLogger('main')
 logging.basicConfig(encoding='utf-8', level=logging.INFO)
 
 ceo = Utils_manager()
+PROD_GUILD = discord.Object(id=ceo.constants.env['PROD_GUILD_ID'])
+TEST_GUILD = discord.Object(id=ceo.constants.env['TEST_GUILD_ID'])
 
 
 class BHBot(commands.Bot):
@@ -26,6 +23,7 @@ class BHBot(commands.Bot):
         Fetch `Test guild` by `id` in `.env` file.
         '''
         global logger
+        global ceo
         s = f'Logged in as {self.user} :hehecat:'
         print(s)
         for _ in range(len(s)):
@@ -37,10 +35,11 @@ class BHBot(commands.Bot):
         logger.info('guilds cache is populated')
 
         test_guild = self.get_guild(TEST_GUILD.id)
+        prod_guild = self.get_guild(PROD_GUILD.id)
         if not test_guild:
             return
 
-        ceo.guild_helper.set_guild(test_guild)
+        ceo.guild_helper.set_guild(test_guild, prod_guild)
         for m in test_guild.members:
             self.check_initial_activity(m)
 
@@ -94,9 +93,12 @@ class BHBot(commands.Bot):
                     f'{before.name}_playing', 's')} seconds')
 
     async def load_initial_extensions(self):
-        cogs = ['cogs.default']
-        for cog in cogs:
+        prod_cogs = ['cogs.default']
+        for cog in prod_cogs:
             await self.load_extension(cog)
+        # test_cogs = ['cogs.experimental']
+        # for cog in test_cogs:
+        #     await self.load_extension(cog)
 
 
 intents = discord.Intents.default()
@@ -106,4 +108,4 @@ intents.guilds = True
 intents.presences = True
 
 bot = BHBot(command_prefix='/', intents=intents)
-bot.run(BOT_TOKEN)
+bot.run(ceo.constants.env['BOT_TOKEN'])

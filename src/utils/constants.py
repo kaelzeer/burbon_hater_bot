@@ -1,11 +1,14 @@
 import json
 import pathlib
+from dotenv import load_dotenv
+from os import environ
 
 
 class Constants(object):
 
     _instance = None
     data = dict()
+    env = dict()
 
     def __new__(cls):
         if not cls._instance:
@@ -22,6 +25,12 @@ class Constants(object):
         with open(path, 'r') as f:
             data = json.load(f)
             self.data = data
+
+    def parse_dotenv(self) -> None:
+        load_dotenv()
+        self.env['BOT_TOKEN'] = environ['TOKEN']
+        self.env['TEST_GUILD_ID'] = environ['TEST_GUILD_ID']
+        self.env['PROD_GUILD_ID'] = environ['PROD_GUILD_ID']
 
     def try_get_value_at(self, path: str = '') -> dict | None:
         paths_list = path.split('/')

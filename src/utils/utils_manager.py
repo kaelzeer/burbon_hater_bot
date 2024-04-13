@@ -16,5 +16,7 @@ class Utils_manager(object):
             cls.guild_helper = Guild_helper()
             cls.constants = Constants()
             cls.time_logger = Time_logger()
+
+            cls.constants.parse_dotenv()
             cls.constants.parse_constants()
         return cls._instance

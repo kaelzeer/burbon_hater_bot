@@ -36,11 +36,14 @@ class BHBot(commands.Bot):
 
         test_guild = self.get_guild(TEST_GUILD.id)
         prod_guild = self.get_guild(PROD_GUILD.id)
-        if not test_guild:
+        if not test_guild and not prod_guild:
             return
 
         ceo.guild_helper.set_guild(test_guild, prod_guild)
-        for m in test_guild.members:
+        # disable test for now:
+        # for m in test_guild.members:
+        #     self.check_initial_activity(m)
+        for m in prod_guild.members:
             self.check_initial_activity(m)
 
     def check_initial_activity(self, member: discord.Member) -> None:
@@ -56,46 +59,21 @@ class BHBot(commands.Bot):
         '''
         Setup command tree.
         '''
+        # clear global command palette, i guess
         await self.load_initial_extensions()
+        await self.tree.sync(guild=None)
         # test guild
-        self.tree.copy_global_to(guild=TEST_GUILD)
+        # self.tree.copy_global_to(guild=TEST_GUILD)
         await self.tree.sync(guild=TEST_GUILD)
-
-    async def on_presence_update(self, before: discord.Member, after: discord.Member):
-        '''
-        Check for activity updated from and to playing some game.
-
-        Works only in `Test guild`
-        '''
-        if after.guild.id != TEST_GUILD.id or before.guild.id != TEST_GUILD.id:
-            return
-        _after_activity_type = None
-        _before_activity_type = None
-
-        if after and after.activity:
-            _after_activity_type = after.activity.type
-        if before and before.activity:
-            _before_activity_type = before.activity.type
-
-        if _before_activity_type != _after_activity_type:
-            if _after_activity_type == discord.ActivityType.playing:
-                logger.info((f'on_presence_update '
-                             f'{after.name}: STARTED PLAYING'))
-                logging
-                ceo.time_logger.start_timer_for_event(
-                    f'{after.name}_playing')
-            else:
-                logger.info((f'on_presence_update '
-                             f'{before.name}: FINISHED PLAYING'))
-                ceo.time_logger.mark_timestamp_for_event(
-                    f'{before.name}_playing', True)
-                logger.info(f'{ceo.time_logger.get_event_duration(
-                    f'{before.name}_playing', 's')} seconds')
+        # prod guild
+        # self.tree.copy_global_to(guild=PROD_GUILD)
+        await self.tree.sync(guild=PROD_GUILD)
 
     async def load_initial_extensions(self):
         prod_cogs = ['cogs.default']
         for cog in prod_cogs:
             await self.load_extension(cog)
+        # disable experimental aka test for now:
         # test_cogs = ['cogs.experimental']
         # for cog in test_cogs:
         #     await self.load_extension(cog)

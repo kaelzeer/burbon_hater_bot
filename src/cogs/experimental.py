@@ -10,7 +10,7 @@ logger = logging.getLogger('experimantal-cog')
 logging.basicConfig(encoding='utf-8', level=logging.INFO)
 
 ceo = Utils_manager()
-PROD_GUILD = discord.Object(id=ceo.constants.env['PROD_GUILD_ID'])
+TEST_GUILD = discord.Object(id=ceo.constants.env['TEST_GUILD_ID'])
 
 
 class ExperimentalCog(commands.Cog):
@@ -22,8 +22,8 @@ class ExperimentalCog(commands.Cog):
         logger.debug((f'ExperimentalCog::is_test_guild: interaction.guild_id: '
                      f'{interaction.guild_id}'))
         logger.debug((f'ExperimentalCog::is_test_guild: ceo.constants.env[TEST_GUILD_ID] '
-                     f'{ceo.constants.env['TEST_GUILD_ID']}'))
-        return interaction.guild_id == int(ceo.constants.env['TEST_GUILD_ID'])
+                     f'{TEST_GUILD.id}'))
+        return interaction.guild_id == TEST_GUILD.id
 
     @app_commands.command(name='hello-there-test', description='Is this The Star Wars reference?')
     @app_commands.check(is_test_guild)

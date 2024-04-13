@@ -4,6 +4,7 @@
             "commands": {
                 "report_my_playtime": {
                     "time_slices": [
+                        { "time": 7200, "emoji_name": "punk", "message": "Whaaat, {} seconds have passed. You're so cool {}"},
                         { "time": 3600, "emoji_name": "ti_chto_ebat", "message": "You've played: {} seconds. Get a life {}"},
                         { "time": 0, "emoji_name": "5658sus", "message": "You've played: {} seconds. {}"}
                     ],

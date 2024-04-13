@@ -18,11 +18,43 @@ class DefaultCog(commands.Cog):
         self.bot = bot
 
     def is_prod_guild(interaction: discord.Interaction) -> bool:
-        logger.debug((f'ExperimentalCog::is_test_guild: interaction.guild_id: '
+        logger.debug((f'DefaultCog::is_test_guild: interaction.guild_id: '
                      f'{interaction.guild_id}'))
-        logger.debug((f'ExperimentalCog::is_test_guild: ceo.constants.env[TEST_GUILD_ID] '
-                     f'{ceo.constants.env['TEST_GUILD_ID']}'))
-        return interaction.guild_id == int(ceo.constants.env['PROD_GUILD_ID'])
+        logger.debug((f'DefaultCog::is_test_guild: PROD_GUILD.id '
+                     f'{PROD_GUILD.id}'))
+        return interaction.guild_id == PROD_GUILD.id
+
+    @commands.Cog.listener(name='on_presence_update')
+    async def on_presence_update(self, before: discord.Member, after: discord.Member):
+        '''
+        Check for activity updated from and to playing some game.
+
+        Works only in `Prod guild`
+        '''
+        if after.guild.id != PROD_GUILD.id or before.guild.id != PROD_GUILD.id:
+            return
+        _after_activity_type = None
+        _before_activity_type = None
+
+        if after and after.activity:
+            _after_activity_type = after.activity.type
+        if before and before.activity:
+            _before_activity_type = before.activity.type
+
+        if _before_activity_type != _after_activity_type:
+            if _after_activity_type == discord.ActivityType.playing:
+                logger.info((f'on_presence_update '
+                             f'{after.name}: STARTED PLAYING'))
+                logging
+                ceo.time_logger.start_timer_for_event(
+                    f'{after.name}_playing')
+            else:
+                logger.info((f'on_presence_update '
+                             f'{before.name}: FINISHED PLAYING'))
+                ceo.time_logger.mark_timestamp_for_event(
+                    f'{before.name}_playing', True)
+                logger.info(f'{ceo.time_logger.get_event_duration(
+                    f'{before.name}_playing', 's')} seconds')
 
     @app_commands.command(name='hello-there', description='Is this The Star Wars reference?')
     @app_commands.check(is_prod_guild)
